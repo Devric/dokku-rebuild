@@ -6,6 +6,7 @@ Commands
 $ dokku help
      rebuild <app>     Rebuilds specified app
      rebuild:all       Rebuilds all apps
+     rebuild:linked    Rebuilds all apps with redis in ENV, limit to single running redis
 ```
 
 Installation

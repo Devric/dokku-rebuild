@@ -14,6 +14,21 @@ case "$1" in
     cd $REPO && git archive $REF | dokku receive $APP | sed -u "s/^/"$'\e[1G'"/"
     ;;
 
+  rebuild:linked)
+    for app in $(ls -d $DOKKU_ROOT/*/); do
+        APP=$(basename $app)
+        REPO="$DOKKU_ROOT/$APP"
+        ENV_FILE="$DOKKU_ROOT/$APP/ENV"
+
+        if grep -q "export REDIS_URL" $ENV_FILE ; then
+                # This will just grep the running instance of all redis server name
+                DB=$(docker ps | grep redis | awk '{print $2}' | sed -e 's/redis\///' -e 's/\:latest//')
+                dokku redis:link $APP $DB
+                dokku rebuild $APP
+        fi
+    done
+    ;;
+
   rebuild:all)
     for app in $(ls -d $DOKKU_ROOT/*/); do
       APP=$(basename $app);
@@ -25,7 +40,9 @@ case "$1" in
     cat && cat<<EOF
     rebuild <app>                                   Rebuild an app
     rebuild:all                                     Rebuild all apps
+    rebuild:linked                                  Rebuild all apps with links(single instance of redis)
 EOF
   ;;
 
 esac
+
